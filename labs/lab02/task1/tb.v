@@ -1,37 +1,39 @@
-// tb.v
-// Starter testbench template -- YOU complete this file.
-//
-// Goal: apply all 8 combinations of I0, I1, S (5 time units apart) to DUT
-// and observe the output. Fill in every TODO below.
-
 module tb;
-
-  // TODO: declare the three DUT inputs as the appropriate variable type.
-  // Use exactly these names: t_i0, t_i1, t_s (needed by $monitor below).
-  reg   ________________________;
-  // TODO: declare the DUT output as the appropriate net type.
-  // Use exactly this name: t_y (needed by $monitor below).
-  wire  ________________________;
-
-  // TODO: instantiate DUT here, connecting t_i0, t_i1, t_s, t_y to its ports
-
-
-  // Waveform dump configuration
+  reg t_i0, t_i1, t_s;
+  wire t_y;
+  integer n;
+  integer errors;
   string vcd_file;
+
+  DUT U_DUT (
+    .I0(t_i0),
+    .I1(t_i1),
+    .S(t_s),
+    .Y(t_y)
+  );
+
   initial begin
     if ($value$plusargs("vcd=%s", vcd_file)) begin
       $dumpfile(vcd_file);
-      $dumpvars(0, DUT);
+      $dumpvars(0, tb);
     end
   end
 
   initial begin
-    // TODO: apply all 8 combinations of t_i0, t_i1, t_s, 5 time units apart,
-    // then $finish. (Same pattern you used in Lab 1's tb.v.)
-
+    errors = 0;
+    for (n = 0; n < 8; n = n + 1) begin
+      {t_i0, t_i1, t_s} = n[2:0];
+      #5;
+      if (t_y !== (t_s ? t_i1 : t_i0)) begin
+        $display("FAIL: I0=%b I1=%b S=%b Y=%b", t_i0, t_i1, t_s, t_y);
+        errors = errors + 1;
+      end
+    end
+    $display("MUX: %0d/8 passed", 8 - errors);
+    if (errors != 0) $fatal(1, "MUX failures");
+    $finish;
   end
 
   initial
     $monitor($time, " I0=%b I1=%b S=%b | Y=%b", t_i0, t_i1, t_s, t_y);
-
 endmodule
